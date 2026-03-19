@@ -1,56 +1,47 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms'; // <-- necesario para usar [(ngModel)]
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register',
-  imports: [FormsModule],      
+  imports: [FormsModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
 })
 export class RegisterComponent {
-  name: string = '';
+// Propiedades enlazadas con el HTML mediante Two-way Binding [(ngModel)]
+  nombre: string = '';
   email: string = '';
   password: string = '';
   confirmPassword: string = '';
-  error: string = '';
-  success: boolean = false;
-  regexEmail: RegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  mensaje: string = '';
+  exito: boolean = false; // controla el color del mensaje y si mostrar el botón de login
 
-  constructor() { }
+  // Inyección de dependencias: Router para navegar, AuthService para registrar usuarios
+  constructor(private router: Router, private authService: AuthService) {}
 
   register() {
-    // Validación básica
-    this.success = false;
-    this.error = '';
-    
-    if (this.name === '' || this.email === '' || this.password === '') {
-      this.error = 'Por favor completa todos los campos';
-      return;
-    }
-
-    if(!(this.regexEmail.test(this.email))){
-      this.error = 'El correo es inválido';
-      return;
-    }
-
+    // Validación: las contraseñas deben coincidir antes de intentar registrar
     if (this.password !== this.confirmPassword) {
-      this.error = 'Las contraseñas no coinciden.';
-      return
+      this.mensaje = 'Las contraseñas no coinciden.';
+      this.exito = false;
+      return;
     }
 
-    this.error = ''
-    this.success = true
-    return 
+    // Se delega el registro al AuthService - retorna true si se registró, false si el email ya existe
+    const ok = this.authService.register(this.nombre, this.email, this.password);
+    if (ok) {
+      this.mensaje = `¡Registro exitoso! Bienvenido, ${this.nombre}.`;
+      this.exito = true;
+    } else {
+      this.mensaje = 'Ese email ya está registrado.';
+      this.exito = false;
+    }
   }
 
-
+  // Navega a /login usando el Router (programmatic navigation)
+  goToLogin() {
+    this.router.navigate(['/login']);
+  }
 }
-
-
-
-
-
-
-
-
-
